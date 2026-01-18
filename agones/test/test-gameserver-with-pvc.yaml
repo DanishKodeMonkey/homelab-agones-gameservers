@@ -1,0 +1,37 @@
+apiVersion: agones.dev/v1
+kind: GameServer
+metadata:
+  name: udp-test-pvc
+  namespace: gameservers
+spec:
+  ports:
+    - name: game
+      containerPort: 7654
+      protocol: UDP
+  template:
+    spec:
+      containers:
+        - name: server
+          image: us-docker.pkg.dev/agones-images/examples/simple-game-server:0.39
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: udp-test-pvc-data
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: udp-test-pvc-data
+  namespace: gameservers
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

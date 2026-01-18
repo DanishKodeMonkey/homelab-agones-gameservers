@@ -1,0 +1,34 @@
+# Generic defaults
+
+name: generic-server
+namespace: gameservers
+
+base:
+  image: alpine
+  tag: latest
+
+steamcmd:
+  app_id: 0
+  credentialsSecret: ""
+
+ports:
+  - name: game
+    containerPort: 7777
+    protocol: UDP
+
+pvc:
+  enabled: true
+  name: generic-data
+  storageClassName: local-path
+  size: 1Gi
+
+command:
+  - "/data/server_executable"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

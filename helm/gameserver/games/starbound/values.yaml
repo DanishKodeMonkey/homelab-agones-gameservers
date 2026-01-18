@@ -1,0 +1,39 @@
+name: starbound-server
+namespace: gameservers
+
+config:
+  name: starbound-server-config
+  binPath: /data/linux/starbound_server
+  fileName: starbound_server.config
+  configPath: /storage
+  path: games/starbound/data/starbound_server.config
+
+steamcmd:
+  appid: 211820
+  secretName: steam-credentials
+
+ports:
+  - name: game
+    containerPort: 21025
+    protocol: TCP
+  - name: query
+    containerPort: 21026
+    protocol: TCP
+
+pvc:
+  enabled: true
+  name: starbound-data
+  storageClassName: local-path
+  size: 2Gi
+
+command:
+  - /data/linux/starbound_server
+
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"

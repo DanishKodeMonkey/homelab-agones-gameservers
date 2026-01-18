@@ -1,0 +1,90 @@
+apiVersion: agones.dev/v1
+kind: GameServer
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+{{- range .Values.ports }}
+    - name: {{ .name }}
+      containerPort: {{ .containerPort }}
+      protocol: {{ .protocol | default "UDP" }}
+{{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: agones-sdk
+
+      securityContext:
+        fsGroup: 1000 # needed by steamcmd
+
+      initContainers:
+        - name: "{{ .Values.name }}-steamcmd"
+          image: cm2network/steamcmd
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - /config/init.sh
+          env:
+            - name: HOME
+              value: /home/steam
+            - name: STEAM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.steamcmd.secretName }}
+                  key: username
+            - name: STEAM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.steamcmd.secretName }}
+                  key: password
+            - name: STEAM_APPID
+              value: "{{ .Values.steamcmd.appid }}"
+            - name: SERVER_BIN
+              value: "{{ .Values.config.binPath }}"
+            - name: CONFIG_DIR
+              value: "/data{{ .Values.config.configPath }}"
+            - name: CONFIG_FILE
+              value: "{{ .Values.config.fileName }}"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+
+      containers:
+        - name: "{{.Values.name}}"
+          image: cm2network/steamcmd
+          imagePullPolicy: IfNotPresent
+          command:
+            - /config/entrypoint.sh
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+          resources:
+            limits:
+              cpu: "{{ .Values.resources.limits.cpu }}"
+              memory: "{{ .Values.resources.limits.memory }}"
+            requests:
+              cpu: "{{ .Values.resources.requests.cpu }}"
+              memory: "{{ .Values.resources.requests.memory }}"
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.pvc.name }}
+        - name: config
+          configMap:
+            name: {{ .Values.config.name }}
+            defaultMode: 0755
+            items:
+              - key: init.sh
+                path: init.sh
+              - key: entrypoint.sh
+                path: entrypoint.sh
+              - key: template.config
+                path: template.config

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.config.name }}
+  namespace: {{ .Release.Namespace }}
+data:
+  init.sh: |
+{{ .Files.Get "files/init.sh" | indent 4 }}
+  entrypoint.sh: |
+{{ .Files.Get "files/entrypoint.sh" | indent 4 }}
+  template.config: |
+{{ .Files.Get "games/starbound/data/starbound_server.config" | indent 4 }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gameserver
+description: "Generic Agones GameServer Helm chart with SteamCMD and PVC support"
+version: 0.8.0
+appVersion: "1.54.0"

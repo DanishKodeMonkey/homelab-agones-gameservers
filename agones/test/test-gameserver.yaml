@@ -1,0 +1,15 @@
+apiVersion: agones.dev/v1
+kind: GameServer
+metadata:
+  name: udp-test
+  namespace: gameservers
+spec:
+  ports:
+    - name: game
+      containerPort: 7654
+      protocol: UDP
+  template:
+    spec:
+      containers:
+        - name: server
+          image: us-docker.pkg.dev/agones-images/examples/simple-game-server:0.39
