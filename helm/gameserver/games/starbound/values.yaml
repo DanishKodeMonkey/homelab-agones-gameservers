@@ -3,14 +3,17 @@ namespace: gameservers
 
 config:
   name: starbound-server-config
-  binPath: /data/linux/starbound_server
+  templatePath: games/starbound/data/starbound_server.config
   fileName: starbound_server.config
-  configPath: /storage
-  path: games/starbound/data/starbound_server.config
+  configPath: /data/storage
 
 steamcmd:
   appid: 211820
+  loginMode: credentials
   secretName: steam-credentials
+
+server:
+  startCommand: /data/linux/starbound_server -bootconfig /data/storage/starbound_server.config
 
 ports:
   - name: game
@@ -26,9 +29,11 @@ pvc:
   storageClassName: local-path
   size: 2Gi
 
-command:
-  - /data/linux/starbound_server
-
+features:
+  copyMods:
+    enabled: true
+    source: /data/mods
+    destination: /data/assets
 
 resources:
   requests:

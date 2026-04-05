@@ -7,23 +7,36 @@ base:
   image: alpine
   tag: latest
 
+config:
+  name: generic-server-config
+  templatePath: ""
+  fileName: ""
+  configPath: /data
+
 steamcmd:
-  app_id: 0
-  credentialsSecret: ""
+  appid: 0
+  loginMode: anonymous
+  secretName: ""
+
+server:
+  startCommand: ""
 
 ports:
   - name: game
     containerPort: 7777
     protocol: UDP
 
+features:
+  copyMods:
+    enabled: false
+    source: /data/mods
+    destination: /data/assets
+
 pvc:
   enabled: true
   name: generic-data
   storageClassName: local-path
   size: 1Gi
-
-command:
-  - "/data/server_executable"
 
 resources:
   requests:

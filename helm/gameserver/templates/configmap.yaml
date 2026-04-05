@@ -9,4 +9,4 @@ data:
   entrypoint.sh: |
 {{ .Files.Get "files/entrypoint.sh" | indent 4 }}
   template.config: |
-{{ .Files.Get "games/starbound/data/starbound_server.config" | indent 4 }}
+{{ .Files.Get .Values.config.templatePath | indent 4 }}

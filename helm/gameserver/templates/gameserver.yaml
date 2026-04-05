@@ -30,6 +30,9 @@ spec:
           env:
             - name: HOME
               value: /home/steam
+            - name: STEAM_LOGIN_MODE
+              value: "{{ .Values.steamcmd.loginMode | default "anonymous" }}"
+{{- if eq (.Values.steamcmd.loginMode | default "anonymous") "credentials" }}
             - name: STEAM_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -40,12 +43,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.steamcmd.secretName }}
                   key: password
+{{- end }}
             - name: STEAM_APPID
               value: "{{ .Values.steamcmd.appid }}"
-            - name: SERVER_BIN
-              value: "{{ .Values.config.binPath }}"
             - name: CONFIG_DIR
-              value: "/data{{ .Values.config.configPath }}"
+              value: "{{ .Values.config.configPath }}"
             - name: CONFIG_FILE
               value: "{{ .Values.config.fileName }}"
           volumeMounts:
@@ -60,6 +62,19 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - /config/entrypoint.sh
+          env:
+            - name: CONFIG_DIR
+              value: "{{ .Values.config.configPath }}"
+            - name: CONFIG_FILE
+              value: "{{ .Values.config.fileName }}"
+            - name: SERVER_START_COMMAND
+              value: "{{ .Values.server.startCommand }}"
+            - name: COPY_MODS_ENABLED
+              value: "{{ .Values.features.copyMods.enabled | default false }}"
+            - name: MODS_DIR
+              value: "{{ .Values.features.copyMods.source }}"
+            - name: MODS_SERVER_DIR
+              value: "{{ .Values.features.copyMods.destination }}"
           volumeMounts:
             - name: data
               mountPath: /data

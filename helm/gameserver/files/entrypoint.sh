@@ -1,11 +1,13 @@
 #!/bin/sh
 set -eu
 
-CONFIG_FILE="${CONFIG_FILE:-starbound_server.config}"
-CONFIG_DIR="${CONFIG_DIR:-/data/storage}"
+CONFIG_FILE="${CONFIG_FILE:-server.config}"
+CONFIG_DIR="${CONFIG_DIR:-/data}"
 TEMPLATE_CONFIG="/config/template.config"
-MODS_DIR="/data/mods"
-MODS_SERVER_DIR="/data/assets"
+SERVER_START_COMMAND="${SERVER_START_COMMAND:-}"
+COPY_MODS_ENABLED="${COPY_MODS_ENABLED:-false}"
+MODS_DIR="${MODS_DIR:-/data/mods}"
+MODS_SERVER_DIR="${MODS_SERVER_DIR:-/data/assets}"
 
 # ---- Copy Config at Startup ----
 mkdir -p "$CONFIG_DIR"
@@ -17,25 +19,29 @@ else
     echo "WARNING: Template config $TEMPLATE_CONFIG is missing or empty!"
 fi
 
-# --- mods
+if [ "$COPY_MODS_ENABLED" = "true" ]; then
+  mkdir -p "$MODS_SERVER_DIR"
 
-# Make sure the user assets directory exists
-mkdir -p "$MODS_SERVER_DIR"
+  if [ -d "$MODS_DIR" ]; then
+    echo "[Info] Copying mods from $MODS_DIR to $MODS_SERVER_DIR..."
+    cp -u "$MODS_DIR"/*.pak "$MODS_SERVER_DIR/" 2>/dev/null || true
+  else
+    echo "[Info] No mods folder found at $MODS_DIR"
+  fi
 
-# Copy mods
-if [ -d "$MODS_DIR" ]; then
-  echo "[Info] Copying mods from $MODS_DIR to $MODS_SERVER_DIR..."
-  cp -u "$MODS_DIR"/*.pak "$MODS_SERVER_DIR/" 2>/dev/null || true
+  echo "[Info] Mods currently in $MODS_SERVER_DIR:"
+  ls -1 "$MODS_SERVER_DIR" || true
 else
-  echo "[Info] No mods folder found at $MODS_DIR"
+  echo "[Info] Mod copy disabled"
 fi
 
-# Optional: list copied mods
-echo "[Info] Mods currently in $MODS_SERVER_DIR:"
-ls -1 "$MODS_SERVER_DIR" || true
+if [ -z "$SERVER_START_COMMAND" ]; then
+  echo "ERROR: SERVER_START_COMMAND is not set"
+  exit 1
+fi
 
 # --- Start game server
-/data/linux/starbound_server -bootconfig /data/storage/starbound_server.config &
+/bin/sh -c "$SERVER_START_COMMAND" &
 GAME_PID=$!
 
 # Tell Agones we are ready
