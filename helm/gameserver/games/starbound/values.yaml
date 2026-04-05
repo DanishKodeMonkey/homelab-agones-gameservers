@@ -6,9 +6,10 @@ config:
   templatePath: games/starbound/data/starbound_server.config
   fileName: starbound_server.config
   configPath: /data/storage
+  overwriteOnStart: true
 
 steamcmd:
-  appid: 211820
+  appid: "211820"
   loginMode: credentials
   secretName: steam-credentials
 

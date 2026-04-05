@@ -9,4 +9,4 @@ data:
   entrypoint.sh: |
 {{ .Files.Get "files/entrypoint.sh" | indent 4 }}
   template.config: |
-{{ .Files.Get .Values.config.templatePath | indent 4 }}
+{{ tpl (.Files.Get .Values.config.templatePath) . | indent 4 }}

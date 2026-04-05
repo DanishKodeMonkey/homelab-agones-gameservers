@@ -3,11 +3,11 @@
 
 This repository hosts a **homelab-level platform** for running personal dedicated game servers on Kubernetes using **k3s** and **Agones**. It is designed for small-scale private hosting and testing, not production-grade deployments.
 
-Still relative WIP as alot of the features offered by the CRD, Agones, and other ideas can be expanded and improved upon, but at the time of writing the hosting of the starbound server provided works.
+Still relative WIP as alot of the features offered by the CRD, Agones, and other ideas can be expanded and improved upon, but at the time of writing the hosting of the Starbound and RuneScape: Dragonwilds servers provided works.
 
 Furthermore, this is not intended a ready-to-use copy paste solution, feel free to try and take inspiration from it but don't expect support on this, it's mostly a personal project.
 
-It automates deployment of game servers like Starbound, manages game configuration, mods, and networking, while keeping secrets and large files out of version control.
+It automates deployment of game servers like Starbound and Dragonwilds, manages game configuration, mods, and networking, while keeping secrets and large files out of version control.
 
 ---
 
@@ -25,6 +25,7 @@ It automates deployment of game servers like Starbound, manages game configurati
 - Kubernetes + Agones-based game server orchestration
 - Persistent storage for game data via PVCs
 - Automated SteamCMD installation and game server setup
+- Support for both credentialed and anonymous SteamCMD installs
 - Support for user mods (e.g., `.pak` files)
 - Easy local deployment with Helm charts
 - Health checks and auto-ready integration with Agones
@@ -47,6 +48,11 @@ It automates deployment of game servers like Starbound, manages game configurati
 │       │   ├── configmap.yaml       # Entrypoint, init scripts, template config
 │       │   └── pvc.yaml             # PVC template
 │       ├── games/                    # Game-specific assets
+│       │   ├── dragonwilds/
+│       │   │   ├── data/
+│       │   │   │   └── DedicatedServer.ini
+│       │   │   ├── README.md
+│       │   │   └── values.yaml
 │       │   └── starbound/
 │       │       ├── data/             # Starbound server files
 │       │       │   ├── mods/         # User mod `.pak` files (ignored in Git)
@@ -77,23 +83,32 @@ kubectl get gameservers -n gameservers
 
 2. Helm Chart Deployment
 
-Before deploying it's important to set up a .secret.yaml file at the root of the project including your steam credentials, this is required for using steamcmd to get any licensed game files.
-Remember your steam credentials are personal and should never be committed.
-The structure eof your .secret.yaml should be like so
+Before deploying a game that requires a licensed Steam login, set up a `.secret.yaml` file at the root of the project with your Steam credentials. Games using anonymous SteamCMD install, such as Dragonwilds, do not need this file.
+Remember your Steam credentials are personal and should never be committed.
+The structure of `.secret.yaml` should be like so:
+
+```yaml
 steamcmd:
-    user:
-    pass:
+  username:
+  password:
+```
 
+The Helm chart now uses a generic values schema for:
 
-- The Helm chart deploys your starbound gameserver with:
+- config template source and destination path
+- SteamCMD login mode
+- startup command
+- optional features such as Starbound mod-copying
+
+- The Helm chart deploys the provided game server overlays with:
 
 - Persistent storage for server configs and mods.
 
 - ConfigMap containing startup scripts (entrypoint.sh) and the template configuration.
 
-- Automatic copying of mods from /mods to /assets/user at startup.
+- Optional automatic copying of mods from `/data/mods` to a game-specific destination at startup.
 
-- To deploy the server:
+- To deploy Starbound:
 
 ```bash
 helm upgrade --install starbound ./helm/gameserver \
@@ -102,11 +117,20 @@ helm upgrade --install starbound ./helm/gameserver \
   -f .secret.yaml
 ```
 
+- To deploy Dragonwilds:
+
+```bash
+helm upgrade --install dragonwilds ./helm/gameserver \
+  -n gameservers \
+  -f ./helm/gameserver/games/dragonwilds/values.yaml \
+  -f .secret.yaml
+```
+
 - Verify the pod and logs:
 
 ```bash
 kubectl get pods -n gameservers
-kubectl logs -f -n gameservers <starbound-pod-name> -c starbound-server
+kubectl logs -f -n gameservers <pod-name> -c <container-name>
 ```
 
 3. Mod Management
@@ -121,7 +145,11 @@ kubectl logs -f -n gameservers <starbound-pod-name> -c starbound-server
 
 - Agones dynamically allocates ports to GameServer pods.
 
-- Forward the allocated range (e.g., 7000-8000 TCP/UDP) from your router for external access.
+- Forward the allocated range (e.g., `7000-8000` TCP/UDP) from your router for external access.
+
+- Clients must connect to the Agones-assigned host port shown on the `GameServer`, not necessarily the in-container port configured by the game.
+
+- Some games may register or advertise the node's internal IP through Agones. That can affect server-browser visibility even when direct join by IP and port works.
 
 ## Notes of potential Improvements
 

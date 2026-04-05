@@ -67,6 +67,8 @@ spec:
               value: "{{ .Values.config.configPath }}"
             - name: CONFIG_FILE
               value: "{{ .Values.config.fileName }}"
+            - name: CONFIG_OVERWRITE_ON_START
+              value: "{{ .Values.config.overwriteOnStart }}"
             - name: SERVER_START_COMMAND
               value: "{{ .Values.server.startCommand }}"
             - name: COPY_MODS_ENABLED

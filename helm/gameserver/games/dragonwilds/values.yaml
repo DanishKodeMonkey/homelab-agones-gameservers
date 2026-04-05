@@ -1,0 +1,47 @@
+name: dragonwilds-server
+namespace: gameservers
+
+config:
+  name: dragonwilds-server-config
+  templatePath: games/dragonwilds/data/DedicatedServer.ini
+  fileName: DedicatedServer.ini
+  configPath: /data/RSDragonwilds/Saved/Config/LinuxServer
+  overwriteOnStart: true
+
+steamcmd:
+  appid: "4019830"
+  loginMode: anonymous
+  secretName: ""
+
+server:
+  startCommand: /data/RSDragonwildsServer.sh -log
+
+ports:
+  - name: game
+    containerPort: 7777
+    protocol: UDP
+
+pvc:
+  enabled: true
+  name: dragonwilds-data
+  storageClassName: local-path
+  size: 10Gi
+
+features:
+  copyMods:
+    enabled: false
+
+dragonwilds:
+  ownerId: ""
+  serverName: Noidworld
+  defaultWorldName: Noidworld
+  adminPassword: ""
+  worldPassword: ""
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "4Gi"
+  limits:
+    cpu: "2"
+    memory: "8Gi"

@@ -12,9 +12,10 @@ config:
   templatePath: ""
   fileName: ""
   configPath: /data
+  overwriteOnStart: true
 
 steamcmd:
-  appid: 0
+  appid: "0"
   loginMode: anonymous
   secretName: ""
 

@@ -4,6 +4,7 @@ set -eu
 CONFIG_FILE="${CONFIG_FILE:-server.config}"
 CONFIG_DIR="${CONFIG_DIR:-/data}"
 TEMPLATE_CONFIG="/config/template.config"
+CONFIG_OVERWRITE_ON_START="${CONFIG_OVERWRITE_ON_START:-true}"
 SERVER_START_COMMAND="${SERVER_START_COMMAND:-}"
 COPY_MODS_ENABLED="${COPY_MODS_ENABLED:-false}"
 MODS_DIR="${MODS_DIR:-/data/mods}"
@@ -13,11 +14,16 @@ MODS_SERVER_DIR="${MODS_SERVER_DIR:-/data/assets}"
 mkdir -p "$CONFIG_DIR"
 
 if [ -s "$TEMPLATE_CONFIG" ]; then
+  if [ "$CONFIG_OVERWRITE_ON_START" = "true" ] || [ ! -f "$CONFIG_DIR/$CONFIG_FILE" ]; then
     echo "Applying template config to $CONFIG_DIR/$CONFIG_FILE"
     cp "$TEMPLATE_CONFIG" "$CONFIG_DIR/$CONFIG_FILE"
+  else
+    echo "Preserving existing config at $CONFIG_DIR/$CONFIG_FILE"
+  fi
 else
-    echo "WARNING: Template config $TEMPLATE_CONFIG is missing or empty!"
+  echo "WARNING: Template config $TEMPLATE_CONFIG is missing or empty!"
 fi
+
 
 if [ "$COPY_MODS_ENABLED" = "true" ]; then
   mkdir -p "$MODS_SERVER_DIR"
